@@ -28,7 +28,7 @@ app.use("/api/products", productsRouter);
 app.use("/api/carts", cartsRouter);
 app.use("/api/tickets", ticketsRouter);
 
-const PORT = 8080;
+const PORT = process.env.PORT || 8080;
 
 mongoose
   .connect(process.env.MONGO_URL)

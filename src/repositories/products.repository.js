@@ -28,6 +28,10 @@ class ProductsRepository {
     return await this.dao.delete(id);
   }
 
+  async decreaseStock(id, quantity) {
+    return await this.dao.decreaseStock(id, quantity);
+  }
+
 }
 
 module.exports = ProductsRepository;

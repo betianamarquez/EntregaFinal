@@ -1,16 +1,27 @@
 const crypto = require("crypto");
+
 const TicketsDAO = require("../dao/tickets.dao");
 const TicketsRepository = require("../repositories/tickets.repository");
-const Cart = require("../models/cart.model");
-const Product = require("../models/product.model");
+
+const CartsDAO = require("../dao/carts.dao");
+const CartsRepository = require("../repositories/carts.repository");
+
+const ProductsDAO = require("../dao/products.dao");
+const ProductsRepository = require("../repositories/products.repository");
 
 const ticketsDAO = new TicketsDAO();
 const ticketsRepository = new TicketsRepository(ticketsDAO);
 
+const cartsDAO = new CartsDAO();
+const cartsRepository = new CartsRepository(cartsDAO);
+
+const productsDAO = new ProductsDAO();
+const productsRepository = new ProductsRepository(productsDAO);
+
 class TicketsService {
 
   async purchaseCart(cartId, purchaserEmail) {
-    const cart = await Cart.findById(cartId).populate("products.product");
+    const cart = await cartsRepository.getCartById(cartId);
 
     if (!cart) {
       throw new Error("Carrito no encontrado");
@@ -52,13 +63,9 @@ class TicketsService {
     for (const item of purchasedProducts) {
       amount += item.price * item.quantity;
 
-      await Product.findByIdAndUpdate(
+      await productsRepository.decreaseStock(
         item.product,
-        {
-          $inc: {
-            stock: -item.quantity
-          }
-        }
+        item.quantity
       );
     }
 
@@ -74,11 +81,14 @@ class TicketsService {
       item => item.product.toString()
     );
 
-    cart.products = cart.products.filter(item => {
+    const remainingProducts = cart.products.filter(item => {
       return !purchasedIds.includes(item.product._id.toString());
     });
 
-    await cart.save();
+    await cartsRepository.updateCart(
+      cartId,
+      remainingProducts
+    );
 
     return {
       ticket,

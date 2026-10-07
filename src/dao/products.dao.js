@@ -33,6 +33,21 @@ class ProductsDAO {
     return await Product.findByIdAndDelete(id);
   }
 
+  async decreaseStock(id, quantity) {
+    return await Product.findByIdAndUpdate(
+      id,
+      {
+        $inc: {
+          stock: -quantity
+        }
+      },
+      {
+        new: true,
+        runValidators: true
+      }
+    );
+  }
+
 }
 
 module.exports = ProductsDAO;
